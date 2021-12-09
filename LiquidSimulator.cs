@@ -5,7 +5,7 @@ namespace FluidSim
     public class LiquidSimulator : Reference
     {
         // Max and min cell liquid values
-        float MaxValue = 1.0f;
+        float MaxValue = 2.0f;
         float MinValue = 0.005f;
 
         // Extra liquid a cell can store than the cell above it
@@ -87,7 +87,6 @@ namespace FluidSim
                         cell.LiquidAmount = 0;
                         continue;
                     }
-                   
 
                     // Keep track of how much liquid this cell started off with
                     float startValue = cell.LiquidAmount;

@@ -8,7 +8,7 @@ namespace FluidSim
         
         private LiquidSimulator _liquidSimulator;
         private Cell[,] _cells;
-        private float _cellSize = 8;
+        private float _cellSize = 4;
         private Label _label;
         private bool _isPlacingLiquid = true;
         private float _fluidAmount = 2f;
@@ -18,7 +18,7 @@ namespace FluidSim
             base._Ready();
             GD.Print(_labelPath);
             _label = GetNode<Label>(_labelPath);
-            _cells = PopulateCells(64);
+            _cells = PopulateCells(128);
             _liquidSimulator = new LiquidSimulator();
             _liquidSimulator.Initialize(_cells);
             UpdateNeighbors();
@@ -153,12 +153,20 @@ namespace FluidSim
                         if (fluidCell.Type == Cell.CellType.Blank && fluidCell.Top != null && (fluidCell.Top.LiquidAmount > 0.05f))
                         {
                             size = new Vector2(_cellSize, _cellSize);
-                            //color.a = Mathf.Min(1, fluidCell.LiquidAmount / 3f);
-                            //GD.Print(fluidCell.LiquidAmount);
+                            color.a = Mathf.Min(1, fluidCell.LiquidAmount / 2f);
+                            
+                            var isNotNearSolid = (fluidCell.Top != null && fluidCell.Top.Type != Cell.CellType.Solid)
+                                                 && (fluidCell.Bottom != null && fluidCell.Bottom.Type != Cell.CellType.Solid)
+                                                 && (fluidCell.Left != null && fluidCell.Left.Type != Cell.CellType.Solid)
+                                                 && (fluidCell.Right != null && fluidCell.Right.Type != Cell.CellType.Solid);
+                            var hyp = Mathf.Sqrt((_cellSize * _cellSize) + (_cellSize * _cellSize));
+                            if (isNotNearSolid)
+                                DrawCircle(position, hyp / 4, color);
                         }
 
                         var rect = new Rect2(position, size);
                         
+
                         DrawRect(rect, color);
                     }
                 }
@@ -167,6 +175,7 @@ namespace FluidSim
 
         private Color LerpColor(Color c1, Color c2, float t)
         {
+            t = Mathf.Clamp(t, 0, 1.5f);
             var r = Mathf.Lerp(c1.r, c2.r, t);
             var g = Mathf.Lerp(c1.g, c2.g, t);
             var b = Mathf.Lerp(c1.b, c2.b, t);

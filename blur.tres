@@ -12,8 +12,12 @@ void vertex() {
 }
 
 void fragment() {
-	if(distance(texture(SCREEN_TEXTURE, SCREEN_UV).rgba, vec4(0, 0, 0, 1)) > 0.1){
+	vec4 col = texture(SCREEN_TEXTURE, SCREEN_UV);
+	if(distance(col.rgba, vec4(0, 0, 0, 1)) > 0.1){
 		COLOR = textureLod(SCREEN_TEXTURE, SCREEN_UV, blur_amount);
+	}
+	else{
+		COLOR = col;
 	}
 	
 }"
