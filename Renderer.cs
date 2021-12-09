@@ -16,7 +16,6 @@ namespace FluidSim
         public override void _Ready()
         {
             base._Ready();
-            GD.Print(_labelPath);
             _label = GetNode<Label>(_labelPath);
             _cells = PopulateCells(128);
             _liquidSimulator = new LiquidSimulator();
@@ -66,8 +65,8 @@ namespace FluidSim
             }
 
             _fluidAmount = Mathf.Clamp(_fluidAmount, .1f, 10f);
-            _label.Text = _isPlacingLiquid ? "(Spacebar) Draw Mode: Liquid" : "Draw Mode: Solid";
-            _label.Text += $"\n(Scroll Wheel) Fluid Placement Amount: {_fluidAmount:0.#}";
+            _label.Text = _isPlacingLiquid ? "(Press Spacebar) Draw Mode: Liquid" : "Draw Mode: Solid";
+            _label.Text += $"\n(Press Arrow Keys) Fluid Placement Amount: {_fluidAmount:0.#}";
 
 
             if (Input.IsMouseButtonPressed((int)ButtonList.Left))
@@ -104,7 +103,7 @@ namespace FluidSim
                         var rect = new Rect2(GlobalPosition.x + x * _cellSize, GlobalPosition.y + y * _cellSize, _cellSize, _cellSize);
                         if (rect.HasPoint(GetGlobalMousePosition()))
                         {
-                            _cells[x, y].SetType(Cell.CellType.Blank);
+                            _cells[x, y].SetType(Cell.CellType.Liquid);
                             _cells[x, y].LiquidAmount = 0;
                         }
                     }
@@ -133,7 +132,7 @@ namespace FluidSim
                     {
                         DrawRect(new Rect2(x * _cellSize, (y - 1) * _cellSize, _cellSize, _cellSize), Colors.Black);
                     }
-                    else if (fluidCell.Type == Cell.CellType.Blank && fluidCell.LiquidAmount > 0)
+                    else if (fluidCell.Type == Cell.CellType.Liquid && fluidCell.LiquidAmount > 0)
                     {
                         var size = new Vector2(_cellSize, Mathf.Min(_cellSize, fluidCell.LiquidAmount * _cellSize));
                         var position = new Vector2(x * _cellSize, y * _cellSize - size.y);
@@ -159,7 +158,7 @@ namespace FluidSim
                             size = new Vector2(0, 0);
                         }
 
-                        if (fluidCell.Type == Cell.CellType.Blank && fluidCell.Top != null && (fluidCell.Top.LiquidAmount > 0.05f))
+                        if (fluidCell.Type == Cell.CellType.Liquid && fluidCell.Top != null && (fluidCell.Top.LiquidAmount > 0.05f))
                         {
                             size = new Vector2(_cellSize, _cellSize);
                             color.a = Mathf.Min(1, fluidCell.LiquidAmount / 2f);
@@ -169,13 +168,12 @@ namespace FluidSim
                                                  && (fluidCell.Left != null && fluidCell.Left.Type != Cell.CellType.Solid)
                                                  && (fluidCell.Right != null && fluidCell.Right.Type != Cell.CellType.Solid);
                             var hyp = Mathf.Sqrt((_cellSize * _cellSize) + (_cellSize * _cellSize));
-                            if (isNotNearSolid)
-                                DrawCircle(position, hyp / 4f, color);
+                            if (isNotNearSolid && fluidCell.Top != null && fluidCell.LiquidAmount > .2) 
+                            {
+                                //DrawCircle(position, hyp / 4f, color);
+                            }
                         }
-
                         var rect = new Rect2(position, size);
-                        
-
                         DrawRect(rect, color);
                     }
                 }
@@ -194,7 +192,7 @@ namespace FluidSim
 
         private void DrawGrid(int xLength, int yLength)
         {
-            var color = Colors.Gray;
+            var color = Colors.DarkGray;
 
             DrawRect(new Rect2(0, -1 * _cellSize, xLength * _cellSize, (yLength + 1) * _cellSize), color, false);
 
@@ -249,7 +247,7 @@ namespace FluidSim
                 for (var j = 0; j < _cells.GetLength(1); j++)
                 {
                     var cell = _cells[i, j];
-                    if (cell.Type == Cell.CellType.Blank)
+                    if (cell.Type == Cell.CellType.Liquid)
                     {
                         if (cell.LiquidAmount > 0)
                         {

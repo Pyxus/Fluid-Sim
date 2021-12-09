@@ -6,21 +6,13 @@ namespace FluidSim
     {
         public enum CellType
         {
-            Blank,
+            Liquid,
             Solid
         }
 
-        public enum FlowDirection
-        {
-            Top = 0,
-            Right = 1,
-            Bottom = 2,
-            Left = 3
-        }
-
+ 
         public CellType Type { get; private set; }
 
-        public bool[] FlowDirections = new bool[4];
 
         public Cell Top;
         public Cell Bottom { get; set; }
@@ -61,13 +53,6 @@ namespace FluidSim
             UnsettleNeighbors();
         }
 
-        public void ResetFlowDirections()
-        {
-            FlowDirections[0] = false;
-            FlowDirections[1] = false;
-            FlowDirections[2] = false;
-            FlowDirections[3] = false;
-        }
 
         public void UnsettleNeighbors()
         {

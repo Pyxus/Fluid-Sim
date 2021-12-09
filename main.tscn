@@ -6,7 +6,7 @@
 
 [sub_resource type="ShaderMaterial" id=4]
 shader = ExtResource( 2 )
-shader_param/blur_amount = 1.25
+shader_param/blur_amount = 0.6
 
 [node name="Main" type="Node"]
 
@@ -28,12 +28,6 @@ __meta__ = {
 size = Vector2( 1024, 600 )
 handle_input_locally = false
 render_target_update_mode = 3
-
-[node name="Sprite3" type="Sprite" parent="ViewportContainer/Viewport"]
-visible = false
-position = Vector2( 514.056, 301 )
-scale = Vector2( 0.651541, 0.651111 )
-texture = ExtResource( 4 )
 
 [node name="Renderer" type="Node2D" parent="ViewportContainer/Viewport"]
 position = Vector2( 274, 64 )
