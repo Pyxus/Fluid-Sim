@@ -56,6 +56,15 @@ namespace FluidSim
                 _isPlacingLiquid = !_isPlacingLiquid;
             }
 
+            if (Input.IsKeyPressed((int)KeyList.Up))
+            {
+                _fluidAmount += .1f;
+            }
+            else if (Input.IsKeyPressed((int)KeyList.Down))
+            {
+                _fluidAmount -= .1f;
+            }
+
             _fluidAmount = Mathf.Clamp(_fluidAmount, .1f, 10f);
             _label.Text = _isPlacingLiquid ? "(Spacebar) Draw Mode: Liquid" : "Draw Mode: Solid";
             _label.Text += $"\n(Scroll Wheel) Fluid Placement Amount: {_fluidAmount:0.#}";
@@ -91,7 +100,7 @@ namespace FluidSim
                     {
                         if (y == 0 || y == yLength - 1 || x == 0 || x == xLength - 1)
                             continue;
-                        ;
+                        
                         var rect = new Rect2(GlobalPosition.x + x * _cellSize, GlobalPosition.y + y * _cellSize, _cellSize, _cellSize);
                         if (rect.HasPoint(GetGlobalMousePosition()))
                         {
@@ -161,7 +170,7 @@ namespace FluidSim
                                                  && (fluidCell.Right != null && fluidCell.Right.Type != Cell.CellType.Solid);
                             var hyp = Mathf.Sqrt((_cellSize * _cellSize) + (_cellSize * _cellSize));
                             if (isNotNearSolid)
-                                DrawCircle(position, hyp / 4, color);
+                                DrawCircle(position, hyp / 4f, color);
                         }
 
                         var rect = new Rect2(position, size);
