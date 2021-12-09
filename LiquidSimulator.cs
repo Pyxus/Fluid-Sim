@@ -13,7 +13,7 @@ namespace FluidSim
 
         // Lowest and highest amount of liquids allowed to flow per iteration
         float MinFlow = 0.005f;
-        float MaxFlow = 4f;
+        float MaxFlow = 9f;
 
         // Adjusts flow speed (0.0f - 1.0f)
         float FlowSpeed = 1f;

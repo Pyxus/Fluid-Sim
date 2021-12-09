@@ -4,6 +4,8 @@ namespace FluidSim
 {
     public class Renderer : Node2D
     {
+        [Export] private NodePath _labelPath;
+        
         private LiquidSimulator _liquidSimulator;
         private Cell[,] _cells;
         private float _cellSize = 8;
@@ -14,7 +16,7 @@ namespace FluidSim
         public override void _Ready()
         {
             base._Ready();
-            _label = GetNode<Label>("Label");
+            _label = GetNode<Label>("../../../Label");
             _cells = PopulateCells(64);
             _liquidSimulator = new LiquidSimulator();
             _liquidSimulator.Initialize(_cells);
@@ -127,6 +129,7 @@ namespace FluidSim
                         var position = new Vector2(x * _cellSize, y * _cellSize - size.y);
                         var DarkColor = Colors.DarkCyan;
                         var LiquidColor = Colors.Cyan;
+                        LiquidColor.a = .7f;
                         
                         if (fluidCell.LiquidAmount < 1)
                         {
@@ -139,7 +142,7 @@ namespace FluidSim
                             color.a = Mathf.Min(1, fluidCell.LiquidAmount / 2f);
 
                         if (fluidCell.Bottom != null && fluidCell.Bottom.LiquidAmount > .4f)
-                            color.a = Mathf.Min(1, color.a + fluidCell.LiquidAmount / 2f);
+                            color.a = Mathf.Min(.95f, color.a + fluidCell.LiquidAmount / 2f);
                         
                         if (fluidCell.Bottom != null && fluidCell.Bottom.Type != Cell.CellType.Solid && fluidCell.Bottom.LiquidAmount <= .99f)
                         {
@@ -149,7 +152,8 @@ namespace FluidSim
                         if (fluidCell.Type == Cell.CellType.Blank && fluidCell.Top != null && (fluidCell.Top.LiquidAmount > 0.05f))
                         {
                             size = new Vector2(_cellSize, _cellSize);
-                            //color.a = .8f;
+                            //color.a = Mathf.Min(1, fluidCell.LiquidAmount / 3f);
+                            //GD.Print(fluidCell.LiquidAmount);
                         }
 
                         var rect = new Rect2(position, size);
