@@ -16,7 +16,8 @@ namespace FluidSim
         public override void _Ready()
         {
             base._Ready();
-            _label = GetNode<Label>("../../../Label");
+            GD.Print(_labelPath);
+            _label = GetNode<Label>(_labelPath);
             _cells = PopulateCells(64);
             _liquidSimulator = new LiquidSimulator();
             _liquidSimulator.Initialize(_cells);
