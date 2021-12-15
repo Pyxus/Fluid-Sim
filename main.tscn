@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Renderer.cs" type="Script" id=1]
 [ext_resource path="res://blur.tres" type="Shader" id=2]
+[ext_resource path="res://main.gd" type="Script" id=3]
 [ext_resource path="res://wp4151483-pokemon-ruby-wallpapers.png" type="Texture" id=4]
 
 [sub_resource type="ShaderMaterial" id=4]
@@ -9,6 +10,7 @@ shader = ExtResource( 2 )
 shader_param/blur_amount = 0.6
 
 [node name="Main" type="Node"]
+script = ExtResource( 3 )
 
 [node name="Sprite2" type="Sprite" parent="."]
 visible = false
@@ -19,6 +21,7 @@ texture = ExtResource( 4 )
 [node name="ViewportContainer" type="ViewportContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 stretch = true
 __meta__ = {
 "_edit_use_anchors_": false
@@ -26,7 +29,6 @@ __meta__ = {
 
 [node name="Viewport" type="Viewport" parent="ViewportContainer"]
 size = Vector2( 1024, 600 )
-handle_input_locally = false
 render_target_update_mode = 3
 
 [node name="Renderer" type="Node2D" parent="ViewportContainer/Viewport"]
@@ -38,6 +40,7 @@ _labelPath = NodePath("../../../Label")
 material = SubResource( 4 )
 margin_right = 1000.0
 margin_bottom = 1000.0
+mouse_filter = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -51,3 +54,15 @@ text = "wdawd"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="CheckBox" type="CheckBox" parent="."]
+margin_left = 100.0
+margin_top = 58.0
+margin_right = 194.0
+margin_bottom = 82.0
+text = "Apply Blur"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="toggled" from="CheckBox" to="." method="_on_CheckBox_toggled"]

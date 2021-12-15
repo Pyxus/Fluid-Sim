@@ -1,141 +1,126 @@
-﻿using System;
-using Godot;
+﻿using Godot;
 
 namespace FluidSim
 {
     public class LiquidSimulator : Reference
     {
-        private float _fluidFlowRate = 1f;
-        private float _maxFluidAmount = 2.0f;
-        private float _minFluidAmount = 0.005f;
-        private float _minFluidTransfer = 0.005f;
-        private float _maxFluidCompression = 0.25f;
-        private float _maxFluidTransfer = 9f;
-        private float[,] _prevSimState;
+        // Max and min cell liquid values
+        float MaxValue = 2.0f;
+        float MinValue = 0.005f;
+
+        // Extra liquid a cell can store than the cell above it
+        float MaxCompression = 0.25f;
+
+        // Lowest and highest amount of liquids allowed to flow per iteration
+        float MinFlow = 0.005f;
+        float MaxFlow = 9f;
+
+        // Adjusts flow speed (0.0f - 1.0f)
+        float FlowSpeed = 1f;
+
+        // Keep track of modifications to cell liquid values
+        float[,] Diffs;
 
         public void Initialize(Cell[,] cells)
         {
-            _prevSimState = new float[cells.GetLength(0), cells.GetLength(1)];
+            Diffs = new float[cells.GetLength(0), cells.GetLength(1)];
         }
 
+        // Calculate how much liquid should flow to destination with pressure
         float CalculateVerticalFlowValue(float remainingLiquid, Cell destination)
         {
             float sum = remainingLiquid + destination.LiquidAmount;
             float value = 0;
 
-            if (sum <= _maxFluidAmount)
+            if (sum <= MaxValue)
             {
-                value = _maxFluidAmount;
+                value = MaxValue;
             }
-            else if (sum < 2 * _maxFluidAmount + _maxFluidCompression)
+            else if (sum < 2 * MaxValue + MaxCompression)
             {
-                value = (_maxFluidAmount * _maxFluidAmount + sum * _maxFluidCompression) / (_maxFluidAmount + _maxFluidCompression);
+                value = (MaxValue * MaxValue + sum * MaxCompression) / (MaxValue + MaxCompression);
             }
             else
             {
-                value = (sum + _maxFluidCompression) / 2f;
+                value = (sum + MaxCompression) / 2f;
             }
 
             return value;
         }
 
-        public void CellHasLiquid()
+        // Run one simulation step
+        public void Simulate(ref Cell[,] cells)
         {
-            
-        }
-        
-        public void ResetPreviousSimState(int xLength, int yLength)
-        {
-            for (int x = 0; x < xLength; x++)
-            {
-                for (int y = 0; y < yLength; y++)
-                {
-                    _prevSimState[x, y] = 0;
-                }
-            } 
-        }
+            float flow = 0;
 
-        public void UpdateSimState(Cell[,] cells)
-        {
+            // Reset the diffs array
             for (int x = 0; x < cells.GetLength(0); x++)
             {
                 for (int y = 0; y < cells.GetLength(1); y++)
                 {
-                    cells[x, y].LiquidAmount += _prevSimState[x, y];
-                    if (cells[x, y].LiquidAmount < _minFluidAmount)
-                    {
-                        cells[x, y].LiquidAmount = 0;
-                        cells[x, y].Settled = false; //default empty cell to unsettled
-                    }
+                    Diffs[x, y] = 0;
                 }
             }
-        }
 
-        public float CalculateFlowRate(float flow, float remainingValue, Cell cell)
-        {
-            flow = (remainingValue - cell.LiquidAmount) / 4f;
-            if (flow > _minFluidTransfer)
-                flow *= _fluidFlowRate;
-            return flow;
-        }
-        
-        // Run one simulation step
-        public void Simulate(ref Cell[,] cells)
-        {
-            ResetPreviousSimState(cells.GetLength(0), cells.GetLength(1));
-            
-            for (var x = 0; x < cells.GetLength(0); x++)
+            // Main loop
+            for (int x = 0; x < cells.GetLength(0); x++)
             {
-                for (var y = 0; y < cells.GetLength(1); y++)
+                for (int y = 0; y < cells.GetLength(1); y++)
                 {
-                    var cell = cells[x, y];
+                    // Get reference to Cell and reset flow
+                    Cell cell = cells[x, y];
+                    //cell.ResetFlowDirections();
+
+                    // Validate cell
                     if (cell.Type == Cell.CellType.Solid)
                     {
-                        // If a solid cell is converted to a liquid cell it'll
-                        // Explode into water so im resetting its fluid amount here ;-; - Ezekiel
                         cell.LiquidAmount = 0;
                         continue;
                     }
 
-                    if (cell.LiquidAmount == 0 || cell.Settled)
+                    if (cell.LiquidAmount == 0)
                         continue;
-             
-                    if (cell.LiquidAmount < _minFluidAmount)
+                    if (cell.Settled)
+                        continue;
+                    if (cell.LiquidAmount < MinValue)
                     {
                         cell.LiquidAmount = 0;
                         continue;
                     }
 
                     // Keep track of how much liquid this cell started off with
-                    var startValue = cell.LiquidAmount;
-                    var remainingValue = cell.LiquidAmount;
-                    float flow = 0;
+                    float startValue = cell.LiquidAmount;
+                    float remainingValue = cell.LiquidAmount;
+                    flow = 0;
 
                     // Flow to bottom cell
                     if (cell.Bottom != null && cell.Bottom.Type == Cell.CellType.Liquid)
                     {
                         // Determine rate of flow
                         flow = CalculateVerticalFlowValue(cell.LiquidAmount, cell.Bottom) - cell.Bottom.LiquidAmount;
-                        if (cell.Bottom.LiquidAmount > 0 && flow > _minFluidTransfer)
-                            flow *= _fluidFlowRate;
+                        if (cell.Bottom.LiquidAmount > 0 && flow > MinFlow)
+                            flow *= FlowSpeed;
 
                         // Constrain flow
-                        flow = Mathf.Clamp(flow, 0f, Mathf.Min(_maxFluidTransfer, remainingValue));
+                        flow = Mathf.Max(flow, 0);
+                        if (flow > Mathf.Min(MaxFlow, cell.LiquidAmount))
+                            flow = Mathf.Min(MaxFlow, cell.LiquidAmount);
 
                         // Update temp values
                         if (flow != 0)
                         {
                             remainingValue -= flow;
-                            _prevSimState[x, y] -= flow;
-                            _prevSimState[x, y + 1] += flow;
+                            Diffs[x, y] -= flow;
+                            Diffs[x, y + 1] += flow;
+                            //cell.FlowDirections[(int)Cell.FlowDirection.Bottom] = true;
                             cell.Bottom.Settled = false;
                         }
                     }
 
                     // Check to ensure we still have liquid in this cell
-                    if (remainingValue < _minFluidAmount)
+                    if (remainingValue < MinValue)
                     {
-                        _prevSimState[x, y] -= remainingValue;
+                        Diffs[x, y] -= remainingValue;
                         continue;
                     }
 
@@ -143,26 +128,30 @@ namespace FluidSim
                     if (cell.Left != null && cell.Left.Type == Cell.CellType.Liquid)
                     {
                         // Calculate flow rate
-                        flow = CalculateFlowRate(flow, remainingValue, cell.Left);
+                        flow = (remainingValue - cell.Left.LiquidAmount) / 4f;
+                        if (flow > MinFlow)
+                            flow *= FlowSpeed;
 
                         // constrain flow
-                        flow = Mathf.Clamp(flow, 0f, Mathf.Min(_maxFluidTransfer, remainingValue));
-                        
+                        flow = Mathf.Max(flow, 0);
+                        if (flow > Mathf.Min(MaxFlow, remainingValue))
+                            flow = Mathf.Min(MaxFlow, remainingValue);
 
                         // Adjust temp values
                         if (flow != 0)
                         {
                             remainingValue -= flow;
-                            _prevSimState[x, y] -= flow;
-                            _prevSimState[x - 1, y] += flow;
+                            Diffs[x, y] -= flow;
+                            Diffs[x - 1, y] += flow;
+                            //cell.FlowDirections[(int)Cell.FlowDirection.Left] = true;
                             cell.Left.Settled = false;
                         }
                     }
 
                     // Check to ensure we still have liquid in this cell
-                    if (remainingValue < _minFluidAmount)
+                    if (remainingValue < MinValue)
                     {
-                        _prevSimState[x, y] -= remainingValue;
+                        Diffs[x, y] -= remainingValue;
                         continue;
                     }
 
@@ -170,25 +159,30 @@ namespace FluidSim
                     if (cell.Right != null && cell.Right.Type == Cell.CellType.Liquid)
                     {
                         // calc flow rate
-                        flow = CalculateFlowRate(flow, remainingValue, cell.Right);
-                        
+                        flow = (remainingValue - cell.Right.LiquidAmount) / 3f;
+                        if (flow > MinFlow)
+                            flow *= FlowSpeed;
+
                         // constrain flow
-                        flow = Mathf.Clamp(flow, 0f, Mathf.Min(_maxFluidTransfer, remainingValue));
+                        flow = Mathf.Max(flow, 0);
+                        if (flow > Mathf.Min(MaxFlow, remainingValue))
+                            flow = Mathf.Min(MaxFlow, remainingValue);
 
                         // Adjust temp values
                         if (flow != 0)
                         {
                             remainingValue -= flow;
-                            _prevSimState[x, y] -= flow;
-                            _prevSimState[x + 1, y] += flow;
+                            Diffs[x, y] -= flow;
+                            Diffs[x + 1, y] += flow;
+                            //cell.FlowDirections[(int)Cell.FlowDirection.Right] = true;
                             cell.Right.Settled = false;
                         }
                     }
 
                     // Check to ensure we still have liquid in this cell
-                    if (remainingValue < _minFluidAmount)
+                    if (remainingValue < MinValue)
                     {
-                        _prevSimState[x, y] -= remainingValue;
+                        Diffs[x, y] -= remainingValue;
                         continue;
                     }
 
@@ -196,35 +190,39 @@ namespace FluidSim
                     if (cell.Top != null && cell.Top.Type == Cell.CellType.Liquid)
                     {
                         flow = remainingValue - CalculateVerticalFlowValue(remainingValue, cell.Top);
-                        if (flow > _minFluidTransfer)
-                            flow *= _fluidFlowRate;
+                        if (flow > MinFlow)
+                            flow *= FlowSpeed;
 
                         // constrain flow
-                        flow = Mathf.Clamp(flow, 0f, Mathf.Min(_maxFluidTransfer, remainingValue));
+                        flow = Mathf.Max(flow, 0);
+                        if (flow > Mathf.Min(MaxFlow, remainingValue))
+                            flow = Mathf.Min(MaxFlow, remainingValue);
 
                         // Adjust values
                         if (flow != 0)
                         {
                             remainingValue -= flow;
-                            _prevSimState[x, y] -= flow;
-                            _prevSimState[x, y - 1] += flow;
+                            Diffs[x, y] -= flow;
+                            Diffs[x, y - 1] += flow;
+                            //cell.FlowDirections[(int)Cell.FlowDirection.Top] = true;
                             cell.Top.Settled = false;
                         }
                     }
 
                     // Check to ensure we still have liquid in this cell
-                    if (remainingValue < _minFluidAmount)
+                    if (remainingValue < MinValue)
                     {
-                        _prevSimState[x, y] -= remainingValue;
+                        Diffs[x, y] -= remainingValue;
                         continue;
                     }
 
                     // Check if cell is settled
-                    if (Math.Abs(startValue - remainingValue) < .1)
+                    if (startValue == remainingValue)
                     {
                         cell.SettleCount++;
                         if (cell.SettleCount >= 10)
                         {
+                            //cell.ResetFlowDirections();
                             cell.Settled = true;
                         }
                     }
@@ -234,8 +232,20 @@ namespace FluidSim
                     }
                 }
             }
-            
-            UpdateSimState(cells);
+
+            // Update Cell values
+            for (int x = 0; x < cells.GetLength(0); x++)
+            {
+                for (int y = 0; y < cells.GetLength(1); y++)
+                {
+                    cells[x, y].LiquidAmount += Diffs[x, y];
+                    if (cells[x, y].LiquidAmount < MinValue)
+                    {
+                        cells[x, y].LiquidAmount = 0;
+                        cells[x, y].Settled = false; //default empty cell to unsettled
+                    }
+                }
+            }
         }
     }
 }
