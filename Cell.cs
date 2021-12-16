@@ -1,8 +1,6 @@
-﻿using Godot;
-
-namespace FluidSim
+﻿namespace FluidSim
 {
-    public class Cell : Reference
+    public class Cell
     {
         public enum CellType
         {
@@ -20,16 +18,16 @@ namespace FluidSim
         public Cell Right { get; set; }
         public float LiquidAmount { get; set; }
 
-        private bool _settled;
+        private bool _isSettled;
         public int SettleCount { get; set; }
 
-        public bool Settled
+        public bool IsSettled
         {
-            get { return _settled; }
+            get { return _isSettled; }
             set
             {
-                _settled = value;
-                if (!_settled)
+                _isSettled = value;
+                if (!_isSettled)
                 {
                     SettleCount = 0;
                 }
@@ -39,7 +37,7 @@ namespace FluidSim
         public void AddLiquid(float amount)
         {
             LiquidAmount += amount;
-            Settled = false;
+            IsSettled = false;
         }
 
         public void SetType(CellType type)
@@ -57,13 +55,13 @@ namespace FluidSim
         public void UnsettleNeighbors()
         {
             if (Top != null)
-                Top.Settled = false;
+                Top.IsSettled = false;
             if (Bottom != null)
-                Bottom.Settled = false;
+                Bottom.IsSettled = false;
             if (Left != null)
-                Left.Settled = false;
+                Left.IsSettled = false;
             if (Right != null)
-                Right.Settled = false;
+                Right.IsSettled = false;
         }
     }
 }
