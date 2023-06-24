@@ -1,4 +1,6 @@
-﻿namespace FluidSim
+﻿using Godot;
+
+namespace FluidSim
 {
     public class Cell
     {
@@ -18,18 +20,18 @@
         public Cell Right { get; set; }
         public float LiquidAmount { get; set; }
 
-        private bool _isSettled;
-        public int SettleCount { get; set; }
+        private bool _active;
+        private int _itterCount;
 
-        public bool IsSettled
+        public bool Active
         {
-            get { return _isSettled; }
+            get => _active;
             set
             {
-                _isSettled = value;
-                if (!_isSettled)
+                _active = value;
+                if (!_active)
                 {
-                    SettleCount = 0;
+                    _itterCount = 0;
                 }
             }
         }
@@ -37,7 +39,7 @@
         public void AddLiquid(float amount)
         {
             LiquidAmount += amount;
-            IsSettled = false;
+            Active = false;
         }
 
         public void SetType(CellType type)
@@ -48,20 +50,28 @@
                 LiquidAmount = 0;
             }
 
-            UnsettleNeighbors();
+            DeactivateNeighbors();
         }
 
+        public void UpdateActivity()
+        {
+            _itterCount++;
+            if (_itterCount >= 5)
+            {
+                Active = true;
+            }
+        }
 
-        public void UnsettleNeighbors()
+        public void DeactivateNeighbors()
         {
             if (Top != null)
-                Top.IsSettled = false;
+                Top.Active = false;
             if (Bottom != null)
-                Bottom.IsSettled = false;
+                Bottom.Active = false;
             if (Left != null)
-                Left.IsSettled = false;
+                Left.Active = false;
             if (Right != null)
-                Right.IsSettled = false;
+                Right.Active = false;
         }
     }
 }

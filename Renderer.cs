@@ -5,19 +5,37 @@ namespace FluidSim
     public class Renderer : Node2D
     {
         [Export] private NodePath _labelPath;
+        [Export] private NodePath _quantityLabelPath;
+        [Export] private NodePath _baseColorButtonPath;
+        [Export] private NodePath _darkColorButtonPath;
+        [Export] private NodePath _highlightColorButtonPath;
+        [Export] private NodePath _clumpingSliderPath;
 
         private LiquidSimulator _liquidSimulator;
         private float _cellSize = 4;
         private Label _label;
+        private Label _quantityLabel;
         private bool _isPlacingLiquid = true;
-        private float _fluidAmount = 2f;
-        private Color baseColor = Colors.Gold;
-        private Color baseDarkColor = Colors.DarkGoldenrod;
+        private float _fluidAmount = 10f;
+        private ColorPickerButton _baseColorButton;
+        private ColorPickerButton _darkColorButton;
+        private ColorPickerButton _highlightColorButton;
+        private HSlider _clumpingSlider;
 
         public override void _Ready()
         {
             base._Ready();
+            _clumpingSlider = GetNode<HSlider>(_clumpingSliderPath);
+            _quantityLabel = GetNode<Label>(_quantityLabelPath);
             _label = GetNode<Label>(_labelPath);
+            _baseColorButton = GetNode<ColorPickerButton>(_baseColorButtonPath);
+            _darkColorButton = GetNode<ColorPickerButton>(_darkColorButtonPath);
+            _highlightColorButton = GetNode<ColorPickerButton>(_highlightColorButtonPath);
+            _baseColorButton.Color = Colors.Goldenrod;
+            _darkColorButton.Color = Colors.DarkGoldenrod;
+            _highlightColorButton.Color = Colors.White;
+            
+            
             _liquidSimulator = new LiquidSimulator();
             _liquidSimulator.Initialize(128);
         }
@@ -64,7 +82,7 @@ namespace FluidSim
             }
 
             _fluidAmount = Mathf.Clamp(_fluidAmount, .1f, 10f);
-            _label.Text = _isPlacingLiquid ? "(Press Spacebar) Draw Mode: Liquid" : "Draw Mode: Solid";
+            _label.Text = _isPlacingLiquid ? "(Press Spacebar) Draw Mode: Sand" : "(Press Spacebar) Draw Mode: Solid";
             _label.Text += $"\n(Press Arrow Keys) Fluid Placement Amount: {_fluidAmount:0.#}";
 
 
@@ -114,7 +132,9 @@ namespace FluidSim
         public override void _PhysicsProcess(float delta)
         {
             base._PhysicsProcess(delta);
+            _liquidSimulator.Clumping = (float) _clumpingSlider.Value;
             _liquidSimulator.Process();
+            _quantityLabel.Text = $"Fluid Quantity: {_liquidSimulator.FluidQuantity}";
         }
 
         public override void _Draw()
@@ -139,13 +159,13 @@ namespace FluidSim
                     {
                         var size = new Vector2(_cellSize, Mathf.Min(_cellSize, fluidCell.LiquidAmount * _cellSize));
                         var position = new Vector2(x * _cellSize, y * _cellSize - size.y);
-                        var DarkColor = baseDarkColor;
-                        var LiquidColor = baseColor;
+                        var DarkColor = _darkColorButton.Color;
+                        var LiquidColor = _baseColorButton.Color;
                         LiquidColor.a = .7f;
 
                         if (fluidCell.LiquidAmount < 1)
                         {
-                            LiquidColor = LerpColor(Colors.White, baseColor, fluidCell.LiquidAmount);
+                            LiquidColor = LerpColor(_highlightColorButton.Color, _baseColorButton.Color, fluidCell.LiquidAmount);
                         }
 
                         var color = LerpColor(LiquidColor, DarkColor, fluidCell.LiquidAmount / 4f);
@@ -165,16 +185,19 @@ namespace FluidSim
                         {
                             size = new Vector2(_cellSize, _cellSize);
                             color.a = Mathf.Min(1, fluidCell.LiquidAmount / 2f);
-
+                            /*
                             var isNotNearSolid = (fluidCell.Top != null && fluidCell.Top.Type != Cell.CellType.Solid)
                                                  && (fluidCell.Bottom != null && fluidCell.Bottom.Type != Cell.CellType.Solid)
                                                  && (fluidCell.Left != null && fluidCell.Left.Type != Cell.CellType.Solid)
                                                  && (fluidCell.Right != null && fluidCell.Right.Type != Cell.CellType.Solid);
                             var hyp = Mathf.Sqrt((_cellSize * _cellSize) + (_cellSize * _cellSize));
-                            if (isNotNearSolid && fluidCell.Top != null && fluidCell.LiquidAmount > .2)
+                            if (isNotNearSolid && fluidCell.Top != null && fluidCell.Top.LiquidAmount < .2f)
                             {
-                                //DrawCircle(position, hyp / 4f, color);
+                                var circColor = color;
+                                circColor.a = .4f;
+                                DrawCircle(position, hyp / 4f, circColor);
                             }
+                            */
                         }
 
                         var rect = new Rect2(position, size);

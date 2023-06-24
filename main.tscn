@@ -3,7 +3,9 @@
 [ext_resource path="res://Renderer.cs" type="Script" id=1]
 [ext_resource path="res://blur.tres" type="Shader" id=2]
 [ext_resource path="res://main.gd" type="Script" id=3]
-[ext_resource path="res://wp4151483-pokemon-ruby-wallpapers.png" type="Texture" id=4]
+
+[sub_resource type="StreamTexture" id=5]
+flags = 4
 
 [sub_resource type="ShaderMaterial" id=4]
 shader = ExtResource( 2 )
@@ -16,11 +18,13 @@ script = ExtResource( 3 )
 visible = false
 position = Vector2( 514.056, 301 )
 scale = Vector2( 0.651541, 0.651111 )
-texture = ExtResource( 4 )
+texture = SubResource( 5 )
 
 [node name="ViewportContainer" type="ViewportContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_left = 99.0
+margin_right = 99.0
 mouse_filter = 2
 stretch = true
 __meta__ = {
@@ -29,12 +33,18 @@ __meta__ = {
 
 [node name="Viewport" type="Viewport" parent="ViewportContainer"]
 size = Vector2( 1024, 600 )
+handle_input_locally = false
 render_target_update_mode = 3
 
 [node name="Renderer" type="Node2D" parent="ViewportContainer/Viewport"]
 position = Vector2( 274, 64 )
 script = ExtResource( 1 )
 _labelPath = NodePath("../../../Label")
+_quantityLabelPath = NodePath("../../../QuantityLabel")
+_baseColorButtonPath = NodePath("../../../HBoxContainer/BaseColorButton")
+_darkColorButtonPath = NodePath("../../../HBoxContainer2/DarkColorButton")
+_highlightColorButtonPath = NodePath("../../../HBoxContainer3/HighlightColorButton")
+_clumpingSliderPath = NodePath("../../../HBoxContainer4/ClumpingSlider")
 
 [node name="ColorRect2" type="ColorRect" parent="ViewportContainer/Viewport"]
 material = SubResource( 4 )
@@ -45,22 +55,156 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Label" type="Label" parent="."]
+[node name="ReferenceRect" type="ReferenceRect" parent="ViewportContainer/Viewport"]
 margin_left = 274.0
-margin_top = 25.0
-margin_right = 334.0
-margin_bottom = 39.0
+margin_top = 64.0
+margin_right = 786.0
+margin_bottom = 576.0
+
+[node name="Label" type="Label" parent="."]
+margin_left = 110.0
+margin_top = 9.0
+margin_right = 170.0
+margin_bottom = 23.0
 text = "wdawd"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label2" type="Label" parent="."]
+margin_left = 110.0
+margin_top = 66.0
+margin_right = 233.0
+margin_bottom = 80.0
+text = "Right Click To Erase"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="QuantityLabel" type="Label" parent="."]
+visible = false
+margin_left = 753.0
+margin_top = 46.0
+margin_right = 876.0
+margin_bottom = 60.0
+text = "QuantityLabel"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="CheckBox" type="CheckBox" parent="."]
 margin_left = 100.0
-margin_top = 58.0
-margin_right = 194.0
-margin_bottom = 82.0
-text = "Apply Blur"
+margin_top = 85.0
+margin_right = 211.0
+margin_bottom = 109.0
+focus_mode = 1
+pressed = true
+enabled_focus_mode = 1
+text = "Apply Shader"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_left = 110.0
+margin_top = 122.0
+margin_right = 213.0
+margin_bottom = 162.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="HBoxContainer"]
+margin_top = 13.0
+margin_right = 68.0
+margin_bottom = 27.0
+text = "Base Color"
+
+[node name="BaseColorButton" type="ColorPickerButton" parent="HBoxContainer"]
+margin_left = 72.0
+margin_right = 103.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+margin_left = 110.0
+margin_top = 176.0
+margin_right = 214.0
+margin_bottom = 216.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="HBoxContainer2"]
+margin_top = 13.0
+margin_right = 66.0
+margin_bottom = 27.0
+text = "Dark Color"
+
+[node name="DarkColorButton" type="ColorPickerButton" parent="HBoxContainer2"]
+margin_left = 70.0
+margin_right = 104.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="."]
+margin_left = 110.0
+margin_top = 228.0
+margin_right = 246.0
+margin_bottom = 268.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="HBoxContainer3"]
+margin_top = 13.0
+margin_right = 97.0
+margin_bottom = 27.0
+text = "HighLight Color"
+
+[node name="HighlightColorButton" type="ColorPickerButton" parent="HBoxContainer3"]
+margin_left = 101.0
+margin_right = 136.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="."]
+margin_left = 59.0
+margin_top = 305.0
+margin_right = 199.0
+margin_bottom = 345.0
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="Label3" type="Label" parent="HBoxContainer4"]
+margin_top = 13.0
+margin_right = 68.0
+margin_bottom = 27.0
+text = "Clumping: "
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ClumpingSlider" type="HSlider" parent="HBoxContainer4"]
+margin_left = 72.0
+margin_right = 140.0
+margin_bottom = 16.0
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.001
+value = 0.001
 __meta__ = {
 "_edit_use_anchors_": false
 }
