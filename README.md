@@ -1,7 +1,7 @@
 # Sand Simulator
 
 <p align="center">
-    <img src="images/demo.gif" width="500" alt="Sim demo">
+    <img src="images/demo.gif" alt="Sim demo">
 </p>
 
 
